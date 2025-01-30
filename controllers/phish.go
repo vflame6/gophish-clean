@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -276,7 +277,7 @@ func renderPhishResponse(w http.ResponseWriter, r *http.Request, ptx models.Phis
 			redirectURL, err := models.ExecuteTemplate(p.RedirectURL, ptx)
 			if err != nil {
 				log.Error(err)
-				http.NotFound(w, r)
+				CustomNotFound(w, r)
 				return
 			}
 			http.Redirect(w, r, redirectURL, http.StatusFound)
@@ -287,10 +288,36 @@ func renderPhishResponse(w http.ResponseWriter, r *http.Request, ptx models.Phis
 	html, err := models.ExecuteTemplate(p.HTML, ptx)
 	if err != nil {
 		log.Error(err)
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 		return
 	}
 	w.Write([]byte(html))
+}
+
+// Overwrite net.https Error with a custom one to set our own headers
+// Go's internal Error func returns text/plain so browser's won't render the html
+func CustomError(w http.ResponseWriter, error string, code int) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-AUSERNAME", "anonymous")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.WriteHeader(code)
+	fmt.Fprintln(w, error)
+}
+
+// Overwrite go's internal not found
+func CustomNotFound(w http.ResponseWriter, r *http.Request) {
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	b, err := os.ReadFile(path + "/templates/404.html")
+	if err != nil {
+		panic(err)
+	}
+	page404 := string(b)
+
+	CustomError(w, page404, http.StatusNotFound)
 }
 
 // RobotsHandler prevents search engines, etc. from indexing phishing materials
