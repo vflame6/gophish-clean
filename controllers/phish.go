@@ -139,7 +139,7 @@ func (ps *PhishingServer) TrackHandler(w http.ResponseWriter, r *http.Request) {
 		if err != ErrInvalidRequest && err != ErrCampaignComplete {
 			log.Error(err)
 		}
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 		return
 	}
 	// Check for a preview
@@ -173,7 +173,7 @@ func (ps *PhishingServer) ReportHandler(w http.ResponseWriter, r *http.Request) 
 		if err != ErrInvalidRequest && err != ErrCampaignComplete {
 			log.Error(err)
 		}
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 		return
 	}
 	// Check for a preview
@@ -207,7 +207,7 @@ func (ps *PhishingServer) PhishHandler(w http.ResponseWriter, r *http.Request) {
 		if err != ErrInvalidRequest && err != ErrCampaignComplete {
 			log.Error(err)
 		}
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 		return
 	}
 	// w.Header().Set("X-Server", config.ServerName) // Useful for checking if this is a GoPhish server (e.g. for campaign reporting plugins)
@@ -217,13 +217,13 @@ func (ps *PhishingServer) PhishHandler(w http.ResponseWriter, r *http.Request) {
 		ptx, err = models.NewPhishingTemplateContext(&preview, preview.BaseRecipient, preview.RId)
 		if err != nil {
 			log.Error(err)
-			http.NotFound(w, r)
+			CustomNotFound(w, r)
 			return
 		}
 		p, err := models.GetPage(preview.PageId, preview.UserId)
 		if err != nil {
 			log.Error(err)
-			http.NotFound(w, r)
+			CustomNotFound(w, r)
 			return
 		}
 		renderPhishResponse(w, r, ptx, p)
@@ -243,7 +243,7 @@ func (ps *PhishingServer) PhishHandler(w http.ResponseWriter, r *http.Request) {
 	p, err := models.GetPage(c.PageId, c.UserId)
 	if err != nil {
 		log.Error(err)
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 		return
 	}
 	switch {
@@ -261,7 +261,7 @@ func (ps *PhishingServer) PhishHandler(w http.ResponseWriter, r *http.Request) {
 	ptx, err = models.NewPhishingTemplateContext(&c, rs.BaseRecipient, rs.RId)
 	if err != nil {
 		log.Error(err)
-		http.NotFound(w, r)
+		CustomNotFound(w, r)
 	}
 	renderPhishResponse(w, r, ptx, p)
 }
